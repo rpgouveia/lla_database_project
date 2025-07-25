@@ -21,6 +21,7 @@ int main(int argc, char *argv[]) {
     int option;
     int database_fd = -1;
     struct dbheader_t *header = NULL;
+    struct employee_t *employees = NULL;
 
     while((option = getopt(argc, argv, "nf:")) != -1) {
         switch(option) {
@@ -71,9 +72,16 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    printf("New File: %d\n", new_file);
-    printf("Filepath: %s\n", filepath);
-    output_file(database_fd, header, NULL); // just a test
+    // Read employees from the database file
+    int read_status = read_employees(database_fd, header, &employees);
+    if (read_status != STATUS_SUCCESS) {
+        printf("Failed to read employees from the database file.\n");
+        close(database_fd);
+        return STATUS_ERROR;
+    }
+
+    // Save the output file
+    output_file(database_fd, header, NULL);
 
     return STATUS_SUCCESS;
 }

@@ -19,7 +19,31 @@ int add_employee(struct dbheader_t *db_header, struct employee_t *employees, cha
 }
 
 int read_employees(int fd, struct dbheader_t *db_header, struct employee_t **employeesOut) {
+    // Validate the file descriptor
+    if (fd < 0) {
+        return handle_file_error("Invalid file descriptor");
+    }
 
+    // Gather the number of employees from the database header
+    int count = db_header->count;
+
+    // Allocate memory for the employees array
+    struct employee_t *employees = calloc(count, sizeof(struct employee_t));
+    if (employees == -1) {
+        return handle_file_error("Error allocating memory for employees");
+    }
+
+    // Read the employees from the file
+    read(fd, employees, count * sizeof(struct employee_t));
+    for (int i = 0; i < count; i++) {
+        // Unpack the employee fields from "network byte order" to "host byte order"
+        // Note: name and address are already in host byte order since they are character arrays
+        employees[i].hours = ntohl(employees[i].hours);
+    }
+
+    // Set the output employees pointer
+    *employeesOut = employees;
+    return STATUS_SUCCESS;
 }
 
 int output_file(int fd, struct dbheader_t *db_header, struct employee_t *employees) {
