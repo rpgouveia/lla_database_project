@@ -22,7 +22,7 @@ int read_employees(int fd, struct dbheader_t *db_header, struct employee_t **emp
 
 }
 
-void output_file(int fd, struct dbheader_t *db_header, struct employee_t *employees) {
+int output_file(int fd, struct dbheader_t *db_header, struct employee_t *employees) {
     // Validate the file descriptor
     if (fd < 0) {
         return handle_file_error("Invalid file descriptor");
