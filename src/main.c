@@ -51,8 +51,8 @@ int main(int argc, char *argv[]) {
             return STATUS_ERROR;
         }
 
-        int db_header = create_db_header(database_fd, &header);
-        if (db_header == STATUS_ERROR) {
+        int create_status = create_db_header(database_fd, &header);
+        if (create_status == STATUS_ERROR) {
             fprintf(stderr, "Failed to create database header.\n");
             close(database_fd);
             return STATUS_ERROR;
@@ -63,12 +63,17 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "Failed to open database file.\n");
             return STATUS_ERROR;
         }
+        int validation_status = validate_db_header(database_fd, &header);
+        if (validation_status == STATUS_ERROR) {
+            fprintf(stderr, "Database header validation failed.\n");
+            close(database_fd);
+            return STATUS_ERROR;
+        }
     }
 
     printf("New File: %d\n", new_file);
     printf("Filepath: %s\n", filepath);
-
-    // TODO
+    output_file(database_fd, header, NULL); // just a test
 
     return STATUS_SUCCESS;
 }
