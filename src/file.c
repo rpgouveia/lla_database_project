@@ -10,8 +10,10 @@
 
 
 int create_db_file(char *filename) {
+    // Check if the file already exists
     int db_file = file_exists(filename);
     
+    // If the file does not exist, create it
     db_file = open(filename, O_RDWR | O_CREAT, 0644);
     if (db_file == -1) {
         return handle_file_error("Error creating database file");

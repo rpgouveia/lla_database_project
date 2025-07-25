@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
     bool new_file = false;
     int option;
     int database_fd = -1;
+    struct dbheader_t *header = NULL;
 
     while((option = getopt(argc, argv, "nf:")) != -1) {
         switch(option) {
@@ -47,6 +48,13 @@ int main(int argc, char *argv[]) {
         database_fd = create_db_file(filepath);
         if (database_fd == -1) {
             fprintf(stderr, "Failed to create database file.\n");
+            return STATUS_ERROR;
+        }
+
+        int db_header = create_db_header(database_fd, &header);
+        if (db_header == STATUS_ERROR) {
+            fprintf(stderr, "Failed to create database header.\n");
+            close(database_fd);
             return STATUS_ERROR;
         }
     } else {

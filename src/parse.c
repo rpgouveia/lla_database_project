@@ -31,7 +31,21 @@ int validate_db_header(int fd, struct dbheader_t **headerOut) {
 }
 
 int create_db_header(int fd, struct dbheader_t **headerOut) {
-	
+    // Allocate memory for the database header
+	struct dbheader_t *header = calloc(1, sizeof(struct dbheader_t));
+    if (header == -1){
+        return handle_file_error("Error allocating memory for database header");
+    }
+
+    // Initialize the header fields
+    header->version = 0x1;
+    header->count = 0;
+    header->magic = HEADER_MAGIC;
+    header->filesize = sizeof(struct dbheader_t);
+
+    // Write the header to the file
+    *headerOut = header;
+    return STATUS_SUCCESS;
 }
 
 
