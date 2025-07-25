@@ -8,7 +8,7 @@
 #include "common.h"
 #include "validation.h"
 
-static int handle_file_error(const char *error_message) {
+int handle_file_error(const char *error_message) {
     perror(error_message);
     return STATUS_ERROR;
 }

@@ -10,10 +10,6 @@
 
 
 int create_db_file(char *filename) {
-    if (filename == NULL) {
-        return handle_file_error("Filename cannot be NULL");
-    }
-
     int db_file = file_exists(filename);
     
     db_file = open(filename, O_RDWR | O_CREAT, 0644);
@@ -24,10 +20,6 @@ int create_db_file(char *filename) {
 }
 
 int open_db_file(char *filename) {
-    if (filename == NULL) {
-        return handle_file_error("Filename cannot be NULL");
-    }
-
     int db_file = open(filename, O_RDWR, 0644);
     if (db_file == -1) {
         return handle_file_error("Error opening database file");
