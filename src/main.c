@@ -21,13 +21,14 @@ int main(int argc, char *argv[]) {
     char *addstring = NULL;
     // Default values
     bool new_file = false;
+    bool list = false;
     int option;
     int database_fd = -1;
     // Initialize pointers for header and employees
     struct dbheader_t *header = NULL;
     struct employee_t *employees = NULL;
 
-    while((option = getopt(argc, argv, "nf:a:")) != -1) {
+    while((option = getopt(argc, argv, "nf:a:l")) != -1) {
         switch(option) {
             case 'n':
                 new_file = true;
@@ -37,6 +38,9 @@ int main(int argc, char *argv[]) {
                 break;
             case 'a':
                 addstring = optarg;
+                break;
+            case 'l':
+                list = true;
                 break;
             case '?':
                 printf("Unknown option: -%c\n", option);
@@ -100,6 +104,11 @@ int main(int argc, char *argv[]) {
         }
         // Add the new employee
         add_employee(header, employees, addstring);
+    }
+
+    if (list) {
+        // List all employees
+        list_employees(header, employees);
     }
 
     // Save the output file
