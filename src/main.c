@@ -87,8 +87,9 @@ int main(int argc, char *argv[]) {
         return STATUS_ERROR;
     }
 
+    // Add a new employee
     if (addstring) {
-        // Add a new employee
+        // Increment the employee count in the header
         header->count++;
         // Reallocate memory for employees array
         employees = realloc(employees, header->count * sizeof(struct employee_t));
