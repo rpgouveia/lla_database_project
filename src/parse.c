@@ -15,7 +15,19 @@ void list_employees(struct dbheader_t *db_header, struct employee_t *employees) 
 }
 
 int add_employee(struct dbheader_t *db_header, struct employee_t *employees, char *addstring) {
+    printf("%s\n", addstring);
 
+    char *name = strtok(addstring, ",");
+    char *address = strtok(NULL, ",");
+    char *hours = strtok(NULL, ",");
+    printf("Name: %s, Address: %s, Hours: %s\n", name, address, hours);
+
+    // String copying with size limit
+    strncpy(employees[db_header->count-1].name, name, sizeof(employees[db_header->count-1].name));
+    strncpy(employees[db_header->count-1].address, address, sizeof(employees[db_header->count-1].address));
+    employees[db_header->count-1].hours = atoi(hours);
+
+    return STATUS_SUCCESS;
 }
 
 int read_employees(int fd, struct dbheader_t *db_header, struct employee_t **employeesOut) {
@@ -52,17 +64,25 @@ int output_file(int fd, struct dbheader_t *db_header, struct employee_t *employe
         return handle_file_error("Invalid file descriptor");
     }
 
+    // Get the actual count of employees
+    int real_count = db_header->count;
+
     // Pack the header fields from "host byte order" to "network byte order" (from memory to disc)
     db_header->version = htons(db_header->version);
     db_header->count = htons(db_header->count);
     db_header->magic = htonl(db_header->magic);
-    db_header->filesize = htonl(db_header->filesize);
+    db_header->filesize = htonl(sizeof(struct dbheader_t) + sizeof(struct employee_t) * real_count); // Calculate the total file size
 
     // Write the header to the file (for now)
     lseek(fd, 0, SEEK_SET);
     write(fd, db_header, sizeof(struct dbheader_t));
     
-    
+    for (int i = 0; i < real_count; i++) {
+        // Pack the employee fields from "host byte order" to "network byte order"
+        // Note: name and address are already in host byte order since they are character arrays
+        employees[i].hours = htonl(employees[i].hours);
+        write(fd, &employees[i], sizeof(struct employee_t));
+    }
     
 }	
 

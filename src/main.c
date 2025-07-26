@@ -16,20 +16,27 @@ void print_usage(char *argv[]) {
 }
 
 int main(int argc, char *argv[]) { 
-	char *filepath = NULL;
+    // Initialize variables
+    char *filepath = NULL;
+    char *addstring = NULL;
+    // Default values
     bool new_file = false;
     int option;
     int database_fd = -1;
+    // Initialize pointers for header and employees
     struct dbheader_t *header = NULL;
     struct employee_t *employees = NULL;
 
-    while((option = getopt(argc, argv, "nf:")) != -1) {
+    while((option = getopt(argc, argv, "nf:a:")) != -1) {
         switch(option) {
             case 'n':
                 new_file = true;
                 break;
             case 'f':
                 filepath = optarg;
+                break;
+            case 'a':
+                addstring = optarg;
                 break;
             case '?':
                 printf("Unknown option: -%c\n", option);
@@ -80,8 +87,22 @@ int main(int argc, char *argv[]) {
         return STATUS_ERROR;
     }
 
+    if (addstring) {
+        // Add a new employee
+        header->count++;
+        // Reallocate memory for employees array
+        employees = realloc(employees, header->count * sizeof(struct employee_t));
+        if (employees == NULL) {
+            fprintf(stderr, "Failed to reallocate memory for employees array.\n");
+            close(database_fd);
+            return STATUS_ERROR;
+        }
+        // Add the new employee
+        add_employee(header, employees, addstring);
+    }
+
     // Save the output file
-    output_file(database_fd, header, NULL);
+    output_file(database_fd, header, employees);
 
     return STATUS_SUCCESS;
 }
