@@ -10,8 +10,11 @@
 void print_usage(char *argv[]) {
     printf("Usage: %s -n -f <database filepath>\n", argv[0]);
     printf("Options:\n");
-    printf("\t -n        - Create a new database file\n");
-    printf("\t -f <path> - Specify the database file path\n");
+    printf("\t -n          - Create a new database file\n");
+    printf("\t -f <path>   - Specify the database file path\n");
+    printf("\t -a <data>   - Add employee (format: name,address,hours)\n");
+    printf("\t -l          - List all employees\n");
+    printf("\t -r <index>  - Remove employee at specified index (0-based)\n");
     printf("If -n is not specified, the program will attempt to open an existing database file.\n");
 }
 
@@ -19,16 +22,17 @@ int main(int argc, char *argv[]) {
     // Initialize variables
     char *filepath = NULL;
     char *addstring = NULL;
-    // Default values
+    int remove_index = -1;
+    int database_fd = -1;
+    int option;
     bool new_file = false;
     bool list = false;
-    int option;
-    int database_fd = -1;
+    bool remove_employee_flag = false;
     // Initialize pointers for header and employees
     struct dbheader_t *header = NULL;
     struct employee_t *employees = NULL;
 
-    while((option = getopt(argc, argv, "nf:a:l")) != -1) {
+    while((option = getopt(argc, argv, "nf:a:lr:")) != -1) {
         switch(option) {
             case 'n':
                 new_file = true;
@@ -41,6 +45,10 @@ int main(int argc, char *argv[]) {
                 break;
             case 'l':
                 list = true;
+                break;
+            case 'r':
+                remove_employee_flag = true;
+                remove_index = atoi(optarg);
                 break;
             case '?':
                 printf("Unknown option: -%c\n", option);
@@ -104,6 +112,25 @@ int main(int argc, char *argv[]) {
         }
         // Add the new employee
         add_employee(header, employees, addstring);
+    }
+
+    if (remove_employee_flag) {
+        int remove_status = remove_employee(header, employees, remove_index);
+        if (remove_status == STATUS_ERROR) {
+            fprintf(stderr, "Failed to remove employee.\n");
+            close(database_fd);
+            return STATUS_ERROR;
+        }
+        
+        // Reallocate memory to free unused space
+        if (header->count > 0) {
+            employees = realloc(employees, header->count * sizeof(struct employee_t));
+            if (employees == NULL) {
+                fprintf(stderr, "Failed to reallocate memory after removal.\n");
+                close(database_fd);
+                return STATUS_ERROR;
+            }
+        }
     }
 
     if (list) {

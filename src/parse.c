@@ -10,6 +10,34 @@
 #include "common.h"
 #include "parse.h"
 
+int remove_employee(struct dbheader_t *db_header, struct employee_t *employees, int index) {
+    // Check if the index is valid
+    if (index < 0 || index >= db_header->count) {
+        fprintf(stderr, "Invalid index: %d. Must be between 0 and %d\n", index, db_header->count - 1);
+        return STATUS_ERROR;
+    }
+
+    // Check if there are employees to remove
+    if (db_header->count == 0) {
+        fprintf(stderr, "There are no employees to remove\n");
+        return STATUS_ERROR;
+    }
+
+    // Move all employees after the index one position back
+    for (int i = index; i < db_header->count - 1; i++) {
+        // Copy the next employee to the current position
+        strcpy(employees[i].name, employees[i + 1].name);
+        strcpy(employees[i].address, employees[i + 1].address);
+        employees[i].hours = employees[i + 1].hours;
+    }
+
+    // Decrement the employee count
+    db_header->count--;
+
+    printf("Employee at index %d removed successfully\n", index);
+    return STATUS_SUCCESS;
+}
+
 void list_employees(struct dbheader_t *db_header, struct employee_t *employees) {
     for (int i = 0; i < db_header->count; i++) {
         printf("Employee %d:\n", i + 1);
@@ -72,11 +100,14 @@ int output_file(int fd, struct dbheader_t *db_header, struct employee_t *employe
     // Get the actual count of employees
     int real_count = db_header->count;
 
+    // Calculate the total file size
+    size_t total_size = sizeof(struct dbheader_t) + sizeof(struct employee_t) * real_count;
+
     // Pack the header fields from "host byte order" to "network byte order" (from memory to disc)
     db_header->version = htons(db_header->version);
     db_header->count = htons(db_header->count);
     db_header->magic = htonl(db_header->magic);
-    db_header->filesize = htonl(sizeof(struct dbheader_t) + sizeof(struct employee_t) * real_count); // Calculate the total file size
+    db_header->filesize = htonl(total_size);
 
     // Write the header to the file (for now)
     lseek(fd, 0, SEEK_SET);
@@ -88,7 +119,14 @@ int output_file(int fd, struct dbheader_t *db_header, struct employee_t *employe
         employees[i].hours = htonl(employees[i].hours);
         write(fd, &employees[i], sizeof(struct employee_t));
     }
+
+    // Truncate the file to the total size (Essential when employees are removed)
+    if (ftruncate(fd, total_size) == -1) {
+        perror("Error truncating file");
+        return STATUS_ERROR;
+    }
     
+    return STATUS_SUCCESS;
 }	
 
 int validate_db_header(int fd, struct dbheader_t **headerOut) {
