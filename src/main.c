@@ -3,6 +3,7 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "common.h"
 #include "file.h"
@@ -20,36 +21,44 @@ void print_usage(char *argv[]) {
 }
 
 int main(int argc, char *argv[]) { 
-    // Initialize variables
+    // Initialize pointers
     char *filepath = NULL;
-    char *addstring = NULL;
-    int remove_index = -1;
-    int database_fd = -1;
-    int option;
-    bool new_file = false;
-    bool list = false;
-    bool remove_employee_flag = false;
-    // Initialize pointers for header and employees
+    char *add_string = NULL;
+    char *update_arg = NULL;
+    char *update_string = NULL;
     struct dbheader_t *header = NULL;
     struct employee_t *employees = NULL;
+    // Initialize variables
+    int remove_index = -1;
+    int update_index = -1;
+    int database_fd = -1;
+    int option;
+    bool new_file_flag = false;
+    bool list_employees_flag = false;
+    bool remove_employee_flag = false;
+    bool update_employee_flag = false;
 
-    while((option = getopt(argc, argv, "nf:a:lr:")) != -1) {
+    while((option = getopt(argc, argv, "nf:a:lr:u:")) != -1) {
         switch(option) {
             case 'n':
-                new_file = true;
+                new_file_flag = true;
                 break;
             case 'f':
                 filepath = optarg;
                 break;
             case 'a':
-                addstring = optarg;
+                add_string = optarg;
                 break;
             case 'l':
-                list = true;
+                list_employees_flag = true;
                 break;
             case 'r':
                 remove_employee_flag = true;
                 remove_index = atoi(optarg);
+                break;
+            case 'u':
+                update_employee_flag = true;
+                update_arg = optarg;
                 break;
             case '?':
                 printf("Unknown option: -%c\n", option);
@@ -65,7 +74,7 @@ int main(int argc, char *argv[]) {
         return STATUS_SUCCESS;
     }
 
-    if (new_file) {
+    if (new_file_flag) {
         database_fd = create_db_file(filepath);
         if (database_fd == -1) {
             fprintf(stderr, "Failed to create database file.\n");
@@ -101,7 +110,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Add a new employee
-    if (addstring) {
+    if (add_string) {
         // Increment the employee count in the header
         header->count++;
         // Reallocate memory for employees array
@@ -112,7 +121,12 @@ int main(int argc, char *argv[]) {
             return STATUS_ERROR;
         }
         // Add the new employee
-        add_employee(header, employees, addstring);
+        add_employee(header, employees, add_string);
+    }
+    
+    // List employees
+    if (list_employees_flag) {
+        list_employees(header, employees);
     }
 
     if (remove_employee_flag) {
@@ -134,13 +148,35 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (list) {
-        // List all employees
-        list_employees(header, employees);
+    // Update an employee
+    if (update_employee_flag && update_arg) {
+        // Parse the update argument using the helper function
+        int parse_status = parse_update_string(update_arg, &update_index, &update_string);
+        if (parse_status == STATUS_ERROR) {
+            fprintf(stderr, "Failed to parse update argument.\n");
+            close(database_fd);
+            return STATUS_ERROR;
+        }
+        
+        int update_status = update_employee(header, employees, update_index, update_string);
+        if (update_status == STATUS_ERROR) {
+            fprintf(stderr, "Failed to update employee.\n");
+            close(database_fd);
+            return STATUS_ERROR;
+        }
     }
 
     // Save the output file
     output_file(database_fd, header, employees);
+
+    // Cleanup
+    if (employees) {
+        free(employees);
+    }
+    if (header) {
+        free(header);
+    }
+    close(database_fd);
 
     return STATUS_SUCCESS;
 }

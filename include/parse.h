@@ -23,5 +23,7 @@ int read_employees(int fd, struct dbheader_t *, struct employee_t **employeesOut
 void list_employees(struct dbheader_t *db_header, struct employee_t *employees);
 int add_employee(struct dbheader_t *db_header, struct employee_t *employees, char *addstring);
 int remove_employee(struct dbheader_t *db_header, struct employee_t *employees, int index);
+int update_employee(struct dbheader_t *db_header, struct employee_t *employees, int index, const char *update_string);
+int parse_update_string(const char *update_arg, int *index, char **data_string);
 
 #endif

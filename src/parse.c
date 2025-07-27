@@ -11,6 +11,88 @@
 #include "parse.h"
 #include "validation.h"
 
+int parse_update_string(const char *update_arg, int *index, char **data_string) {
+    // Validate input parameters
+    if (!update_arg || !index || !data_string) {
+        fprintf(stderr, "Invalid parameters for update parsing\n");
+        return STATUS_ERROR;
+    }
+
+    // Create a copy of the string for parsing
+    char temp_string[512];
+    strncpy(temp_string, update_arg, sizeof(temp_string) - 1);
+    temp_string[sizeof(temp_string) - 1] = '\0';
+    
+    // Extract the index
+    char *idx_str = strtok(temp_string, ",");
+    if (!idx_str) {
+        fprintf(stderr, "Invalid update format. Expected: index,name,address,hours\n");
+        return STATUS_ERROR;
+    }
+    
+    *index = atoi(idx_str);
+    
+    // Find the comma in the original string and get the data part
+    const char *comma_pos = strchr(update_arg, ',');
+    if (!comma_pos) {
+        fprintf(stderr, "Invalid update format. Missing data after index\n");
+        return STATUS_ERROR;
+    }
+    
+    // Point to the character after the comma
+    *data_string = (char *)(comma_pos + 1);
+    
+    // Validate that we have some data
+    if (strlen(*data_string) == 0) {
+        fprintf(stderr, "Invalid update format. No data provided\n");
+        return STATUS_ERROR;
+    }
+    
+    return STATUS_SUCCESS;
+}
+
+int update_employee(struct dbheader_t *db_header, struct employee_t *employees, int index, const char *update_string) {
+    // Validate parameters
+    if (!db_header || !employees || !update_string) {
+        return handle_file_error("Invalid parameters");
+    }
+
+    // Check if index is valid
+    if (index < 0 || index >= db_header->count) {
+        fprintf(stderr, "Invalid index: %d. Must be between 0 and %d\n", 
+                index, db_header->count - 1);
+        return STATUS_ERROR;
+    }
+
+    // Create a copy of update_string since strtok modifies the string
+    char update_data[256];
+    strncpy(update_data, update_string, sizeof(update_data) - 1);
+    update_data[sizeof(update_data) - 1] = '\0';
+
+    // Parse the update string
+    char *name = strtok(update_data, ",");
+    char *address = strtok(NULL, ",");
+    char *hours = strtok(NULL, ",");
+
+    if (!name || !address || !hours) {
+        fprintf(stderr, "Invalid update format. Expected: name,address,hours\n");
+        return STATUS_ERROR;
+    }
+
+    // Update the employee data
+    strncpy(employees[index].name, name, sizeof(employees[index].name) - 1);
+    employees[index].name[sizeof(employees[index].name) - 1] = '\0';
+    
+    strncpy(employees[index].address, address, sizeof(employees[index].address) - 1);
+    employees[index].address[sizeof(employees[index].address) - 1] = '\0';
+    
+    employees[index].hours = atoi(hours);
+
+    printf("Employee at index %d updated successfully\n", index);
+    return STATUS_SUCCESS;
+}
+
+
 int remove_employee(struct dbheader_t *db_header, struct employee_t *employees, int index) {
     // Check if the index is valid
     if (index < 0 || index >= db_header->count) {
