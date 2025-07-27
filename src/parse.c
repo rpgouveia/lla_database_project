@@ -9,6 +9,7 @@
 
 #include "common.h"
 #include "parse.h"
+#include "validation.h"
 
 int remove_employee(struct dbheader_t *db_header, struct employee_t *employees, int index) {
     // Check if the index is valid
@@ -74,7 +75,7 @@ int read_employees(int fd, struct dbheader_t *db_header, struct employee_t **emp
 
     // Allocate memory for the employees array
     struct employee_t *employees = calloc(count, sizeof(struct employee_t));
-    if (employees == -1) {
+    if (employees == NULL) {
         return handle_file_error("Error allocating memory for employees");
     }
 
@@ -137,7 +138,7 @@ int validate_db_header(int fd, struct dbheader_t **headerOut) {
 
     // Allocate memory for the database header
     struct dbheader_t *header = calloc(1, sizeof(struct dbheader_t));
-    if (header == -1) {
+    if (header == NULL) {
         return handle_file_error("Error allocating memory for database header");
     }
 
@@ -183,7 +184,7 @@ int validate_db_header(int fd, struct dbheader_t **headerOut) {
 int create_db_header(int fd, struct dbheader_t **headerOut) {
     // Allocate memory for the database header
 	struct dbheader_t *header = calloc(1, sizeof(struct dbheader_t));
-    if (header == -1){
+    if (header == NULL){
         return handle_file_error("Error allocating memory for database header");
     }
 
