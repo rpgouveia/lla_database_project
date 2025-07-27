@@ -17,6 +17,7 @@ void print_usage(char *argv[]) {
     printf("\t -a <data>   - Add employee (format: name,address,hours)\n");
     printf("\t -l          - List all employees\n");
     printf("\t -r <index>  - Remove employee at specified index (0-based)\n");
+    printf("\t -u <data>   - Update employee (format: index,name,address,hours)\n");
     printf("If -n is not specified, the program will attempt to open an existing database file.\n");
 }
 
