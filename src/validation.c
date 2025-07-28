@@ -8,17 +8,17 @@
 #include "common.h"
 #include "validation.h"
 
+/**
+ * @brief Handles file operation errors by printing error message
+ * 
+ * Implementation details:
+ * - Uses perror() to print error message with system error description
+ * - Writes to stderr for proper error stream handling
+ * - Returns consistent error code for standardized error handling
+ * - Does not exit the program, allowing caller to decide next action
+ */
 int handle_file_error(const char *error_message) {
     perror(error_message);
     return STATUS_ERROR;
-}
-
-int file_exists(char *filename) {
-    int fd = open(filename, O_RDONLY);
-    if (fd != -1) {
-        close(fd);
-        printf("File %s exists.\n", filename);
-        return STATUS_ERROR;
-    }
 }
 
