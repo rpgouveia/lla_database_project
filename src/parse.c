@@ -11,6 +11,16 @@
 #include "parse.h"
 #include "validation.h"
 
+/**
+ * @brief Implements the parse update functionality.
+ * 
+ * Implementation details:
+ * - Validates the index and update string format.
+ * - Uses strncpy to safely copy strings.
+ * - Uses strtok to parse the update string.
+ * - Uses atoi to convert the hours string to an integer.
+ * - Uses strchr to find the comma in the original string.
+ */
 int parse_update_string(const char *update_arg, int *index, char **data_string) {
     // Validate input parameters
     if (!update_arg || !index || !data_string) {
@@ -51,6 +61,15 @@ int parse_update_string(const char *update_arg, int *index, char **data_string) 
     return STATUS_SUCCESS;
 }
 
+/**
+ * @brief Implementation of employee update functionality.
+ * 
+ * Implementation details:
+ * - Validates the index and update string format.
+ * - Uses strncpy to safely copy strings.
+ * - Uses strtok to parse the update string.
+ * - Updates the employee's name, address, and hours.
+ */
 int update_employee(struct dbheader_t *db_header, struct employee_t *employees, int index, const char *update_string) {
     // Validate parameters
     if (!db_header || !employees || !update_string) {
@@ -92,7 +111,16 @@ int update_employee(struct dbheader_t *db_header, struct employee_t *employees, 
     return STATUS_SUCCESS;
 }
 
-
+/**
+ * @brief Removes an employee from the database.
+ * 
+ * Implementation details:
+ * - Validates the index.
+ * - Checks if there are employees to remove.
+ * - Moves all employees after the index one position back.
+ * - Decrements the employee count.
+ * - Handles memory allocation and error checking.
+ */
 int remove_employee(struct dbheader_t *db_header, struct employee_t *employees, int index) {
     // Check if the index is valid
     if (index < 0 || index >= db_header->count) {
@@ -121,6 +149,13 @@ int remove_employee(struct dbheader_t *db_header, struct employee_t *employees, 
     return STATUS_SUCCESS;
 }
 
+/**
+ * @brief Lists all employees in the database.
+ * 
+ * Implementation details:
+ * - Iterates through the employees array.
+ * - Prints each employee's details.
+ */
 void list_employees(struct dbheader_t *db_header, struct employee_t *employees) {
     for (int i = 0; i < db_header->count; i++) {
         printf("Employee %d:\n", i + 1);
@@ -130,10 +165,20 @@ void list_employees(struct dbheader_t *db_header, struct employee_t *employees) 
     }
 }
 
-int add_employee(struct dbheader_t *db_header, struct employee_t *employees, char *addstring) {
-    printf("%s\n", addstring);
+/**
+ * @brief Adds a new employee to the database.
+ * 
+ * Implementation details:
+ * - Validates the input string format.
+ * - Uses strtok to parse the input string.
+ * - Uses strncpy to safely copy strings.
+ * - Increments the employee count in the header.
+ * - Handles memory allocation and error checking.
+ */
+int add_employee(struct dbheader_t *db_header, struct employee_t *employees, char *add_string) {
+    printf("%s\n", add_string);
 
-    char *name = strtok(addstring, ",");
+    char *name = strtok(add_string, ",");
     char *address = strtok(NULL, ",");
     char *hours = strtok(NULL, ",");
     printf("Name: %s, Address: %s, Hours: %s\n", name, address, hours);
@@ -146,6 +191,16 @@ int add_employee(struct dbheader_t *db_header, struct employee_t *employees, cha
     return STATUS_SUCCESS;
 }
 
+/**
+ * @brief Reads employee records from a file.
+ * 
+ * Implementation details:
+ * - Validates the file descriptor.
+ * - Allocates memory for the employees array.
+ * - Reads the employee records from the file.
+ * - Unpacks the employee fields from "network byte order" to "host byte order".
+ * - Sets the output employees pointer.
+ */
 int read_employees(int fd, struct dbheader_t *db_header, struct employee_t **employeesOut) {
     // Validate the file descriptor
     if (fd < 0) {
@@ -174,6 +229,15 @@ int read_employees(int fd, struct dbheader_t *db_header, struct employee_t **emp
     return STATUS_SUCCESS;
 }
 
+/**
+ * @brief Outputs the database file with the header and employee records.
+ * 
+ * Implementation details:
+ * - Validates the file descriptor.
+ * - Packs the header fields from "host byte order" to "network byte order".
+ * - Writes the header and employee records to the file.
+ * - Truncates the file to the total size.
+ */
 int output_file(int fd, struct dbheader_t *db_header, struct employee_t *employees) {
     // Validate the file descriptor
     if (fd < 0) {
@@ -212,6 +276,17 @@ int output_file(int fd, struct dbheader_t *db_header, struct employee_t *employe
     return STATUS_SUCCESS;
 }	
 
+/**
+ * @brief Validates the database header.
+ * 
+ * Implementation details:
+ * - Validates the file descriptor.
+ * - Allocates memory for the database header.
+ * - Reads the header from the file.
+ * - Unpacks the header fields from "network byte order" to "host byte order".
+ * - Validates the header fields (version, magic number, filesize).
+ * - Sets the output header pointer.
+ */
 int validate_db_header(int fd, struct dbheader_t **headerOut) {
     // Validate the file descriptor
     if (fd < 0) {
@@ -263,6 +338,15 @@ int validate_db_header(int fd, struct dbheader_t **headerOut) {
     return STATUS_SUCCESS;
 }
 
+/**
+ * @brief Create a db header object
+ * 
+ * Implementation details:
+ * - Allocates memory for the database header.
+ * - Initializes the header fields.
+ * - Writes the header to the file.
+ * - Handles memory allocation errors.
+ */
 int create_db_header(int fd, struct dbheader_t **headerOut) {
     // Allocate memory for the database header
 	struct dbheader_t *header = calloc(1, sizeof(struct dbheader_t));
