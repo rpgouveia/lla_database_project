@@ -1,8 +1,11 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#define STATUS_ERROR   -1
-#define STATUS_SUCCESS 0
-
+/**
+ * @brief Return status codes for function operations
+ * 
+ */
+#define STATUS_ERROR  -1    // Indicates an error in the operation
+#define STATUS_SUCCESS 0    // Indicates a success in the operation
 
 #endif
