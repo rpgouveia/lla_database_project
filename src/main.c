@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
 
     if (new_file_flag) {
         database_fd = create_db_file(filepath);
-        if (database_fd == -1) {
+        if (database_fd == STATUS_ERROR) {
             fprintf(stderr, "Failed to create database file.\n");
             return STATUS_ERROR;
         }
@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
         }
     } else {
         database_fd = open_db_file(filepath);
-        if (database_fd == -1) {
+        if (database_fd == STATUS_ERROR) {
             fprintf(stderr, "Failed to open database file.\n");
             return STATUS_ERROR;
         }
